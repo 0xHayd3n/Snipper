@@ -9,43 +9,19 @@ export function initDatabase(): Database.Database {
   db = new Database(dbPath);
 
   db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS collections (
+    CREATE TABLE IF NOT EXISTS captures (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'screenshot',
+      mode TEXT NOT NULL DEFAULT 'fullscreen',
+      file_path TEXT NOT NULL,
+      width INTEGER NOT NULL DEFAULT 0,
+      height INTEGER NOT NULL DEFAULT 0,
+      file_size INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
-
-    CREATE TABLE IF NOT EXISTS tags (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      colour TEXT NOT NULL DEFAULT '#4ec9b0'
-    );
-
-    CREATE TABLE IF NOT EXISTS snippets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      content TEXT NOT NULL DEFAULT '',
-      language TEXT NOT NULL DEFAULT 'plaintext',
-      collection_id INTEGER NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS snippet_tags (
-      snippet_id INTEGER NOT NULL REFERENCES snippets(id) ON DELETE CASCADE,
-      tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-      PRIMARY KEY (snippet_id, tag_id)
-    );
   `);
-
-  // Seed default "General" collection if none exist
-  const count = db.prepare('SELECT COUNT(*) as count FROM collections').get() as { count: number };
-  if (count.count === 0) {
-    db.prepare('INSERT INTO collections (name) VALUES (?)').run('General');
-  }
 
   return db;
 }

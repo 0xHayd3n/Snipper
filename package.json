@@ -1,7 +1,7 @@
 {
   "name": "snipper",
   "version": "0.1.0",
-  "description": "A desktop code snippet manager",
+  "description": "A desktop screen capture and recording tool",
   "main": "dist/main/main/index.js",
   "scripts": {
     "dev": "concurrently -k \"npm run dev:renderer\" \"npm run dev:main\"",

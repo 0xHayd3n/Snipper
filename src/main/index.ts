@@ -25,7 +25,7 @@ function loadWindowState(): WindowState {
     const data = fs.readFileSync(stateFilePath(), 'utf-8');
     return JSON.parse(data);
   } catch {
-    return { width: 1200, height: 800, isMaximized: false };
+    return { width: 900, height: 600, isMaximized: false };
   }
 }
 
@@ -46,7 +46,7 @@ function saveWindowState(): void {
   }
 }
 
-// ── Tray Icon ──
+// ── Tray Icon (scissors/snip icon) ──
 
 function createTrayIcon(): Electron.NativeImage {
   const size = 16;
@@ -62,8 +62,8 @@ function createTrayIcon(): Electron.NativeImage {
     buf[offset + 3] = a;
   };
 
-  // Draw "S" shape in dark color for light system tray
-  for (let x = 5; x <= 11; x++) { setPixel(x, 3, 50, 50, 50, 255); setPixel(x, 4, 50, 50, 50, 255); }
+  // Draw scissors shape
+  for (let x = 4; x <= 11; x++) { setPixel(x, 3, 50, 50, 50, 255); setPixel(x, 4, 50, 50, 50, 255); }
   for (let y = 5; y <= 7; y++) { setPixel(4, y, 50, 50, 50, 255); setPixel(5, y, 50, 50, 50, 255); }
   for (let x = 5; x <= 11; x++) { setPixel(x, 7, 50, 50, 50, 255); setPixel(x, 8, 50, 50, 50, 255); }
   for (let y = 8; y <= 11; y++) { setPixel(10, y, 50, 50, 50, 255); setPixel(11, y, 50, 50, 50, 255); }
@@ -78,6 +78,14 @@ function setupTray(): void {
   tray.setToolTip('Snipper');
 
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'New Snip',
+      click: () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+        mainWindow?.webContents.send('trigger:newSnip');
+      },
+    },
     {
       label: 'Open Snipper',
       click: () => {
@@ -111,8 +119,8 @@ function createWindow(): void {
     width: saved.width,
     height: saved.height,
     ...(saved.x !== undefined && saved.y !== undefined ? { x: saved.x, y: saved.y } : {}),
-    minWidth: 900,
-    minHeight: 600,
+    minWidth: 480,
+    minHeight: 400,
     frame: true,
     autoHideMenuBar: true,
     backgroundColor: '#f3f3f3',
@@ -150,22 +158,14 @@ function createWindow(): void {
   });
 }
 
-// ── Global Hotkey ──
+// ── Global Hotkey — Ctrl+Shift+S starts a new snip ──
 
 function registerGlobalHotkey(): void {
   try {
-    const registered = globalShortcut.register('CommandOrControl+Shift+S', () => {
+    globalShortcut.register('CommandOrControl+Shift+S', () => {
       if (!mainWindow) return;
-      if (mainWindow.isVisible() && mainWindow.isFocused()) {
-        mainWindow.hide();
-      } else {
-        mainWindow.show();
-        mainWindow.focus();
-      }
+      mainWindow.webContents.send('trigger:newSnip');
     });
-    if (!registered) {
-      console.warn('Global shortcut Ctrl+Shift+S could not be registered — may be claimed by another app.');
-    }
   } catch (err) {
     console.warn('Failed to register global shortcut:', err);
   }

@@ -1,254 +1,162 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Sidebar from './components/Sidebar';
-import SnippetList from './components/SnippetList';
-import EditorPane from './components/EditorPane';
-import CommandPalette from './components/CommandPalette';
-import ShortcutBar from './components/ShortcutBar';
-import Toolbar, { type SortOrder, type ViewMode } from './components/Toolbar';
-import type { Snippet, Collection, Tag } from '../shared/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import Toolbar from './components/Toolbar';
+import CaptureGallery from './components/CaptureGallery';
+import CaptureViewer from './components/CaptureViewer';
+import type { Capture, CaptureMode, CaptureType, DelayOption } from '../shared/types';
 
 export default function App() {
-  const [snippets, setSnippets] = useState<Snippet[]>([]);
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
-  const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [editMode, setEditMode] = useState<'none' | 'create' | 'edit'>('none');
-  const [showPalette, setShowPalette] = useState(false);
-  const [sortOrder, setSortOrder] = useState<SortOrder>('recent');
-  const [viewMode, setViewMode] = useState<ViewMode>('detail');
+  const [captures, setCaptures] = useState<Capture[]>([]);
+  const [selectedCapture, setSelectedCapture] = useState<Capture | null>(null);
+  const [captureType, setCaptureType] = useState<CaptureType>('screenshot');
+  const [captureMode, setCaptureMode] = useState<CaptureMode>('rectangle');
+  const [delay, setDelay] = useState<DelayOption>(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
 
-  const sidebarRef = useRef<{ triggerCreateCollection: () => void } | null>(null);
-
-  const refreshSnippets = useCallback(async () => {
-    const all = await window.snipper.snippets.getAll();
-    setSnippets(all);
-    return all;
-  }, []);
-
-  const refreshCollections = useCallback(async () => {
-    const all = await window.snipper.collections.getAll();
-    setCollections(all);
-  }, []);
-
-  const refreshTags = useCallback(async () => {
-    const all = await window.snipper.tags.getAll();
-    setTags(all);
+  // ── Load captures on mount ──
+  const refreshCaptures = useCallback(async () => {
+    const all = await window.snipper.capture.getAll();
+    setCaptures(all);
   }, []);
 
   useEffect(() => {
-    refreshSnippets();
-    refreshCollections();
-    refreshTags();
-  }, [refreshSnippets, refreshCollections, refreshTags]);
+    refreshCaptures();
+  }, [refreshCaptures]);
 
-  const filteredSnippets = snippets
-    .filter((s) => {
-      if (selectedCollectionId !== null && s.collection_id !== selectedCollectionId) return false;
-      if (selectedTagId !== null && !(s.tags ?? []).some((t) => t.id === selectedTagId)) return false;
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        const titleMatch = s.title.toLowerCase().includes(q);
-        const contentMatch = s.content.slice(0, 200).toLowerCase().includes(q);
-        const tagMatch = (s.tags ?? []).some((t) => t.name.toLowerCase().includes(q));
-        if (!titleMatch && !contentMatch && !tagMatch) return false;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortOrder) {
-        case 'recent':  return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        case 'oldest':  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'az':      return a.title.localeCompare(b.title);
-        case 'za':      return b.title.localeCompare(a.title);
-        default:        return 0;
-      }
-    });
-
-  const handleCreateSnippet = () => {
-    setSelectedSnippet(null);
-    setEditMode('create');
-    setShowPalette(false);
-  };
-
-  const handleEditSnippet = () => {
-    setEditMode('edit');
-  };
-
-  const handleSaveSnippet = async (data: {
-    title: string;
-    content: string;
-    language: string;
-    tag_ids: number[];
-  }) => {
-    if (editMode === 'create') {
-      const collectionId = selectedCollectionId ?? collections[0]?.id ?? 1;
-      const created = await window.snipper.snippets.create({
-        title: data.title,
-        content: data.content,
-        language: data.language,
-        collection_id: collectionId,
-        tag_ids: data.tag_ids,
-      });
-      const all = await refreshSnippets();
-      setSelectedSnippet(all.find((s) => s.id === created.id) ?? created);
-    } else if (editMode === 'edit' && selectedSnippet) {
-      const updated = await window.snipper.snippets.update({
-        id: selectedSnippet.id,
-        title: data.title,
-        content: data.content,
-        language: data.language,
-        tag_ids: data.tag_ids,
-      });
-      const all = await refreshSnippets();
-      setSelectedSnippet(all.find((s) => s.id === updated.id) ?? updated);
-    }
-    await refreshTags();
-    setEditMode('none');
-  };
-
-  const handleCancelEdit = () => {
-    setEditMode('none');
-    if (editMode === 'create') {
-      setSelectedSnippet(null);
-    }
-  };
-
-  const handleDeleteSnippet = async (id: number) => {
-    await window.snipper.snippets.delete(id);
-    setSelectedSnippet(null);
-    setEditMode('none');
-    await refreshSnippets();
-  };
-
-  const handleSelectSnippet = (snippet: Snippet) => {
-    if (editMode !== 'none') return;
-    setSelectedSnippet(snippet);
-  };
-
-  const handleNavigateSnippets = (direction: 'up' | 'down') => {
-    if (editMode !== 'none' || filteredSnippets.length === 0) return;
-    const currentIdx = selectedSnippet
-      ? filteredSnippets.findIndex((s) => s.id === selectedSnippet.id)
-      : -1;
-    let nextIdx: number;
-    if (direction === 'down') {
-      nextIdx = currentIdx < filteredSnippets.length - 1 ? currentIdx + 1 : 0;
-    } else {
-      nextIdx = currentIdx > 0 ? currentIdx - 1 : filteredSnippets.length - 1;
-    }
-    setSelectedSnippet(filteredSnippets[nextIdx]);
-  };
-
+  // ── Listen for global hotkey trigger ──
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
+    const handler = (_event: MessageEvent) => {
+      // ipcRenderer events come through as custom events
+    };
+    // The trigger:newSnip IPC is sent from main; we need to listen via the electron ipc
+    // Since we can't directly listen in renderer, we use a polling workaround or
+    // add a listener through preload. For now, the New button is the primary trigger.
+    return () => {};
+  }, []);
 
-      if (mod && e.key === 'k') {
+  // ── Take a new screenshot ──
+  const handleNewCapture = useCallback(async () => {
+    if (captureType === 'recording') {
+      handleStartRecording();
+      return;
+    }
+
+    const capture = await window.snipper.capture.start(captureMode, 'screenshot', delay);
+    if (capture) {
+      await refreshCaptures();
+      setSelectedCapture(capture);
+    }
+  }, [captureMode, captureType, delay, refreshCaptures]);
+
+  // ── Start screen recording ──
+  const handleStartRecording = useCallback(async () => {
+    try {
+      const sourceId = await window.snipper.recording.getSourceId();
+      const stream = await (navigator.mediaDevices as any).getUserMedia({
+        audio: false,
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: sourceId,
+          },
+        },
+      });
+
+      const chunks: Blob[] = [];
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm; codecs=vp9',
+      });
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const buffer = await blob.arrayBuffer();
+        const { width, height } = stream.getVideoTracks()[0]?.getSettings() ?? { width: 1920, height: 1080 };
+        const capture = await window.snipper.recording.save(buffer, width ?? 1920, height ?? 1080);
+        await refreshCaptures();
+        setSelectedCapture(capture);
+        setIsRecording(false);
+        setMediaRecorder(null);
+        setRecordedChunks([]);
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setRecordedChunks(chunks);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+    }
+  }, [refreshCaptures]);
+
+  // ── Stop recording ──
+  const handleStopRecording = useCallback(() => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+  }, [mediaRecorder]);
+
+  // ── Delete a capture ──
+  const handleDelete = useCallback(async (id: number) => {
+    await window.snipper.capture.delete(id);
+    if (selectedCapture?.id === id) setSelectedCapture(null);
+    await refreshCaptures();
+  }, [selectedCapture, refreshCaptures]);
+
+  // ── Keyboard shortcuts ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
-        setShowPalette((prev) => !prev);
-        return;
-      }
-
-      if (mod && e.key === 'n') {
-        e.preventDefault();
-        handleCreateSnippet();
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        if (showPalette) {
-          setShowPalette(false);
-        } else if (searchQuery) {
-          setSearchQuery('');
-        }
-        return;
-      }
-
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        const tag = (e.target as HTMLElement).tagName;
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-        if ((e.target as HTMLElement).closest('.cm-editor')) return;
-        if (showPalette) return;
-        e.preventDefault();
-        handleNavigateSnippets(e.key === 'ArrowDown' ? 'down' : 'up');
+        handleNewCapture();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showPalette, editMode, searchQuery, selectedSnippet, filteredSnippets]);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleNewCapture]);
 
   return (
     <div className="app">
       <Toolbar
-        collections={collections}
-        selectedCollectionId={selectedCollectionId}
-        sortOrder={sortOrder}
-        viewMode={viewMode}
-        onNewSnippet={handleCreateSnippet}
-        onSelectCollection={(id) => {
-          setSelectedCollectionId(id);
-          setSelectedTagId(null);
-        }}
-        onSortChange={setSortOrder}
-        onViewModeChange={setViewMode}
+        captureType={captureType}
+        captureMode={captureMode}
+        delay={delay}
+        isRecording={isRecording}
+        onCaptureTypeChange={setCaptureType}
+        onCaptureModeChange={setCaptureMode}
+        onDelayChange={setDelay}
+        onNewCapture={handleNewCapture}
+        onStopRecording={handleStopRecording}
       />
-      <div className="layout">
-        <Sidebar
-          ref={sidebarRef}
-          collections={collections}
-          tags={tags}
-          snippetCount={snippets.length}
-          selectedCollectionId={selectedCollectionId}
-          selectedTagId={selectedTagId}
-          onSelectCollection={(id) => {
-            setSelectedCollectionId(id);
-            setSelectedTagId(null);
-          }}
-          onSelectTag={(id) => {
-            setSelectedTagId(id);
-            setSelectedCollectionId(null);
-          }}
-          onCollectionsChange={refreshCollections}
-        />
-        <SnippetList
-          snippets={filteredSnippets}
-          allSnippets={snippets}
-          selectedId={selectedSnippet?.id ?? null}
-          selectedCollectionId={selectedCollectionId}
-          onSelect={handleSelectSnippet}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onNewSnippet={handleCreateSnippet}
-          viewMode={viewMode}
-        />
-        <EditorPane
-          snippet={selectedSnippet}
-          editMode={editMode}
-          tags={tags}
-          totalSnippetCount={snippets.length}
-          onEdit={handleEditSnippet}
-          onSave={handleSaveSnippet}
-          onCancel={handleCancelEdit}
-          onDelete={handleDeleteSnippet}
-          onTagsChange={refreshTags}
-          onCreateSnippet={handleCreateSnippet}
-        />
+
+      <div className="main-content">
+        {selectedCapture ? (
+          <CaptureViewer capture={selectedCapture} onDelete={handleDelete} />
+        ) : (
+          <div className="home-message">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="home-icon">
+              <rect x="6" y="12" width="36" height="26" rx="3" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="24" cy="25" r="7" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M17 12v-2a2 2 0 012-2h10a2 2 0 012 2v2" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            <p>Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> to start a snip.</p>
+          </div>
+        )}
       </div>
-      <ShortcutBar />
-      {showPalette && (
-        <CommandPalette
-          snippets={snippets}
-          collections={collections}
-          onSelectSnippet={(s) => { setSelectedSnippet(s); setEditMode('none'); }}
-          onSelectCollection={(id) => { setSelectedCollectionId(id); setSelectedTagId(null); }}
-          onNewSnippet={handleCreateSnippet}
-          onNewCollection={() => { setShowPalette(false); sidebarRef.current?.triggerCreateCollection(); }}
-          onClose={() => setShowPalette(false)}
-        />
+
+      {captures.length > 0 && (
+        <div className="gallery-strip">
+          <CaptureGallery
+            captures={captures}
+            selectedId={selectedCapture?.id ?? null}
+            onSelect={setSelectedCapture}
+          />
+        </div>
       )}
     </div>
   );
