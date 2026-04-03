@@ -5,7 +5,7 @@
   "main": "dist/main/main/index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
-    "dev:main": "tsc -p tsconfig.main.json && NODE_ENV=development electron dist/main/main/index.js",
+    "dev:main": "tsc -p tsconfig.main.json && cross-env NODE_ENV=development electron dist/main/main/index.js",
     "dev:renderer": "vite",
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build",
@@ -32,6 +32,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
     "concurrently": "^9.1.0",
+    "cross-env": "^10.1.0",
     "electron": "^33.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
