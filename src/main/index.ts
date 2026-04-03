@@ -49,7 +49,6 @@ function saveWindowState(): void {
 // ── Tray Icon ──
 
 function createTrayIcon(): Electron.NativeImage {
-  // Generate a 16x16 RGBA bitmap with an "S"-like shape
   const size = 16;
   const channels = 4;
   const buf = Buffer.alloc(size * size * channels, 0);
@@ -63,17 +62,12 @@ function createTrayIcon(): Electron.NativeImage {
     buf[offset + 3] = a;
   };
 
-  // Draw a simple "S" shape in white on transparent background
-  // Top horizontal bar (rows 3-4, cols 5-11)
-  for (let x = 5; x <= 11; x++) { setPixel(x, 3, 255, 255, 255, 255); setPixel(x, 4, 255, 255, 255, 255); }
-  // Left vertical upper (rows 5-7, cols 4-5)
-  for (let y = 5; y <= 7; y++) { setPixel(4, y, 255, 255, 255, 255); setPixel(5, y, 255, 255, 255, 255); }
-  // Middle horizontal bar (rows 7-8, cols 5-11)
-  for (let x = 5; x <= 11; x++) { setPixel(x, 7, 255, 255, 255, 255); setPixel(x, 8, 255, 255, 255, 255); }
-  // Right vertical lower (rows 8-11, cols 10-11)
-  for (let y = 8; y <= 11; y++) { setPixel(10, y, 255, 255, 255, 255); setPixel(11, y, 255, 255, 255, 255); }
-  // Bottom horizontal bar (rows 11-12, cols 4-11)
-  for (let x = 4; x <= 11; x++) { setPixel(x, 11, 255, 255, 255, 255); setPixel(x, 12, 255, 255, 255, 255); }
+  // Draw "S" shape in dark color for light system tray
+  for (let x = 5; x <= 11; x++) { setPixel(x, 3, 50, 50, 50, 255); setPixel(x, 4, 50, 50, 50, 255); }
+  for (let y = 5; y <= 7; y++) { setPixel(4, y, 50, 50, 50, 255); setPixel(5, y, 50, 50, 50, 255); }
+  for (let x = 5; x <= 11; x++) { setPixel(x, 7, 50, 50, 50, 255); setPixel(x, 8, 50, 50, 50, 255); }
+  for (let y = 8; y <= 11; y++) { setPixel(10, y, 50, 50, 50, 255); setPixel(11, y, 50, 50, 50, 255); }
+  for (let x = 4; x <= 11; x++) { setPixel(x, 11, 50, 50, 50, 255); setPixel(x, 12, 50, 50, 50, 255); }
 
   return nativeImage.createFromBitmap(buf, { width: size, height: size });
 }
@@ -91,9 +85,7 @@ function setupTray(): void {
         mainWindow?.focus();
       },
     },
-    {
-      type: 'separator',
-    },
+    { type: 'separator' },
     {
       label: 'Quit',
       click: () => {
@@ -121,8 +113,9 @@ function createWindow(): void {
     ...(saved.x !== undefined && saved.y !== undefined ? { x: saved.x, y: saved.y } : {}),
     minWidth: 900,
     minHeight: 600,
-    frame: false,
-    backgroundColor: '#0d0d0d',
+    frame: true,
+    backgroundColor: '#f3f3f3',
+    title: 'Snipper',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -140,11 +133,9 @@ function createWindow(): void {
     mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
   }
 
-  // Save state on resize/move
   mainWindow.on('resize', saveWindowState);
   mainWindow.on('move', saveWindowState);
 
-  // Hide to tray instead of closing
   mainWindow.on('close', (e) => {
     if (!isQuitting) {
       e.preventDefault();
@@ -188,7 +179,6 @@ app.whenReady().then(() => {
   setupTray();
   registerGlobalHotkey();
 
-  // Window control handlers
   ipcMain.on('window:minimize', () => mainWindow?.minimize());
   ipcMain.on('window:maximize', () => {
     if (mainWindow?.isMaximized()) {

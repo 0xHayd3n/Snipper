@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import TitleBar from './components/TitleBar';
 import Sidebar from './components/Sidebar';
 import SnippetList from './components/SnippetList';
 import EditorPane from './components/EditorPane';
@@ -42,7 +41,6 @@ export default function App() {
     refreshTags();
   }, [refreshSnippets, refreshCollections, refreshTags]);
 
-  // Filter snippets by collection, tag, and search
   const filteredSnippets = snippets.filter((s) => {
     if (selectedCollectionId !== null && s.collection_id !== selectedCollectionId) return false;
     if (selectedTagId !== null && !(s.tags ?? []).some((t) => t.id === selectedTagId)) return false;
@@ -117,7 +115,6 @@ export default function App() {
     setSelectedSnippet(snippet);
   };
 
-  // Arrow key navigation in snippet list
   const handleNavigateSnippets = (direction: 'up' | 'down') => {
     if (editMode !== 'none' || filteredSnippets.length === 0) return;
     const currentIdx = selectedSnippet
@@ -132,43 +129,34 @@ export default function App() {
     setSelectedSnippet(filteredSnippets[nextIdx]);
   };
 
-  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
 
-      // Cmd/Ctrl+K: command palette
       if (mod && e.key === 'k') {
         e.preventDefault();
         setShowPalette((prev) => !prev);
         return;
       }
 
-      // Cmd/Ctrl+N: new snippet
       if (mod && e.key === 'n') {
         e.preventDefault();
         handleCreateSnippet();
         return;
       }
 
-      // Escape: close palette / cancel edit / clear search
       if (e.key === 'Escape') {
         if (showPalette) {
           setShowPalette(false);
-        } else if (editMode !== 'none') {
-          // Let EditorPane handle its own cancel logic
         } else if (searchQuery) {
           setSearchQuery('');
         }
         return;
       }
 
-      // Cmd/Ctrl+Enter: save (handled in EditorPane)
-      // Arrow navigation when not in an input/textarea/editor
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         const tag = (e.target as HTMLElement).tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-        // Don't navigate when inside CodeMirror
         if ((e.target as HTMLElement).closest('.cm-editor')) return;
         if (showPalette) return;
         e.preventDefault();
@@ -182,7 +170,6 @@ export default function App() {
 
   return (
     <div className="app">
-      <TitleBar />
       <div className="layout">
         <Sidebar
           ref={sidebarRef}

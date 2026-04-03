@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { EditorView } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { basicSetup } from 'codemirror';
-import { oneDark } from '@codemirror/theme-one-dark';
+import { EditorView as EditorViewTheme } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { css } from '@codemirror/lang-css';
@@ -17,13 +17,19 @@ const SUPPORTED_LANGUAGES = [
   'python', 'css', 'html', 'json', 'markdown', 'sql', 'plaintext',
 ];
 
-const TAG_COLOURS = ['#4ec9b0', '#569cd6', '#ce9178', '#dcdcaa', '#c586c0', '#d16969'];
+const TAG_COLOURS = ['#0078d4', '#107c10', '#ca5010', '#8764b8', '#e74856', '#00b7c3'];
 
-const bgOverride = EditorView.theme({
-  '&': { backgroundColor: 'var(--bg-primary)', height: '100%' },
-  '.cm-gutters': { backgroundColor: 'var(--bg-primary)', border: 'none' },
-  '.cm-content': { fontFamily: 'var(--font-mono)', fontSize: '13px' },
+const lightTheme = EditorViewTheme.theme({
+  '&': { backgroundColor: '#ffffff', height: '100%' },
+  '.cm-gutters': { backgroundColor: '#f9f9f9', borderRight: '1px solid #e5e5e5', color: '#999' },
+  '.cm-content': { fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#1e1e1e' },
   '.cm-scroller': { overflow: 'auto' },
+  '.cm-activeLine': { backgroundColor: '#f0f4ff' },
+  '.cm-activeLineGutter': { backgroundColor: '#f0f4ff' },
+  '.cm-selectionBackground': { backgroundColor: '#b4d8fd !important' },
+  '&.cm-focused .cm-selectionBackground': { backgroundColor: '#b4d8fd !important' },
+  '.cm-cursor': { borderLeftColor: '#1e1e1e' },
+  '.cm-matchingBracket': { backgroundColor: '#d4e9d4', color: '#1e1e1e' },
 });
 
 function getLanguageExtension(lang: string) {
@@ -167,8 +173,7 @@ export default function EditorPane({
 
     const extensions = [
       basicSetup,
-      oneDark,
-      bgOverride,
+      lightTheme,
       getLanguageExtension(lang),
       ...(isEditing ? [updateListener] : [EditorState.readOnly.of(true)]),
     ];
@@ -205,7 +210,7 @@ export default function EditorPane({
 
     const state = EditorState.create({
       doc,
-      extensions: [basicSetup, oneDark, bgOverride, getLanguageExtension(editLanguage), updateListener],
+      extensions: [basicSetup, lightTheme, getLanguageExtension(editLanguage), updateListener],
     });
     view.setState(state);
   }, [editLanguage, isEditing]);
