@@ -4,7 +4,7 @@ import SnippetList from './components/SnippetList';
 import EditorPane from './components/EditorPane';
 import CommandPalette from './components/CommandPalette';
 import ShortcutBar from './components/ShortcutBar';
-import Toolbar, { type SortOrder, type SnipMode } from './components/Toolbar';
+import Toolbar, { type SortOrder, type ViewMode } from './components/Toolbar';
 import type { Snippet, Collection, Tag } from '../shared/types';
 
 export default function App() {
@@ -18,7 +18,7 @@ export default function App() {
   const [editMode, setEditMode] = useState<'none' | 'create' | 'edit'>('none');
   const [showPalette, setShowPalette] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('recent');
-  const [snipMode, setSnipMode] = useState<SnipMode>('snippet');
+  const [viewMode, setViewMode] = useState<ViewMode>('detail');
 
   const sidebarRef = useRef<{ triggerCreateCollection: () => void } | null>(null);
 
@@ -187,14 +187,14 @@ export default function App() {
         collections={collections}
         selectedCollectionId={selectedCollectionId}
         sortOrder={sortOrder}
-        mode={snipMode}
+        viewMode={viewMode}
         onNewSnippet={handleCreateSnippet}
         onSelectCollection={(id) => {
           setSelectedCollectionId(id);
           setSelectedTagId(null);
         }}
         onSortChange={setSortOrder}
-        onModeChange={setSnipMode}
+        onViewModeChange={setViewMode}
       />
       <div className="layout">
         <Sidebar
@@ -223,6 +223,7 @@ export default function App() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onNewSnippet={handleCreateSnippet}
+          viewMode={viewMode}
         />
         <EditorPane
           snippet={selectedSnippet}

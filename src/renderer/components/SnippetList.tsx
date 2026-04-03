@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import type { Snippet } from '../../shared/types';
+import type { ViewMode } from './Toolbar';
 
 interface SnippetListProps {
   snippets: Snippet[];
@@ -10,6 +11,7 @@ interface SnippetListProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onNewSnippet: () => void;
+  viewMode: ViewMode;
 }
 
 export default function SnippetList({
@@ -21,6 +23,7 @@ export default function SnippetList({
   searchQuery,
   onSearchChange,
   onNewSnippet,
+  viewMode,
 }: SnippetListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +106,7 @@ export default function SnippetList({
               snippet={snippet}
               selected={snippet.id === selectedId}
               onClick={() => onSelect(snippet)}
+              compact={viewMode === 'compact'}
             />
           ))}
         </div>
@@ -115,15 +119,27 @@ function SnippetCard({
   snippet,
   selected,
   onClick,
+  compact,
 }: {
   snippet: Snippet;
   selected: boolean;
   onClick: () => void;
+  compact: boolean;
 }) {
-  const previewLines = snippet.content
-    .split('\n')
-    .slice(0, 3)
-    .join('\n');
+  const previewLines = snippet.content.split('\n').slice(0, 3).join('\n');
+
+  if (compact) {
+    return (
+      <button
+        className={`snippet-card snippet-card-compact${selected ? ' snippet-card-active' : ''}`}
+        onClick={onClick}
+        data-snippet-id={snippet.id}
+      >
+        <span className="snippet-card-title">{snippet.title}</span>
+        <span className="snippet-card-lang">{snippet.language}</span>
+      </button>
+    );
+  }
 
   return (
     <button

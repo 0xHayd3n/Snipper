@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { EditorView } from '@codemirror/view';
+import { EditorView, placeholder as cmPlaceholder } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { basicSetup } from 'codemirror';
 import { EditorView as EditorViewTheme } from '@codemirror/view';
@@ -176,7 +176,9 @@ export default function EditorPane({
       basicSetup,
       lightTheme,
       getLanguageExtension(lang),
-      ...(isEditing ? [updateListener] : [EditorState.readOnly.of(true)]),
+      ...(isEditing
+        ? [updateListener, cmPlaceholder('// Paste or type your code here…')]
+        : [EditorState.readOnly.of(true)]),
     ];
 
     const state = EditorState.create({ doc, extensions });

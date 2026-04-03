@@ -1,29 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { Collection } from '../../shared/types';
 
-export type SnipMode = 'snippet' | 'screen';
+export type ViewMode = 'detail' | 'compact';
 export type SortOrder = 'recent' | 'oldest' | 'az' | 'za';
 
 interface ToolbarProps {
   collections: Collection[];
   selectedCollectionId: number | null;
   sortOrder: SortOrder;
-  mode: SnipMode;
+  viewMode: ViewMode;
   onNewSnippet: () => void;
   onSelectCollection: (id: number | null) => void;
   onSortChange: (sort: SortOrder) => void;
-  onModeChange: (mode: SnipMode) => void;
+  onViewModeChange: (mode: ViewMode) => void;
 }
 
 export default function Toolbar({
   collections,
   selectedCollectionId,
   sortOrder,
-  mode,
+  viewMode,
   onNewSnippet,
   onSelectCollection,
   onSortChange,
-  onModeChange,
+  onViewModeChange,
 }: ToolbarProps) {
   const [showCollectionMenu, setShowCollectionMenu] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -65,36 +65,38 @@ export default function Toolbar({
 
       <div className="toolbar-separator" />
 
-      {/* ── Mode toggles: Snippet (camera) / Screen (video) ── */}
+      {/* ── View toggles: Detail (code preview) / Compact (titles only) ── */}
       <div className="toolbar-toggle-group">
+        {/* Detail view — code snippet with preview lines */}
         <button
-          className={`toolbar-toggle-btn${mode === 'snippet' ? ' toolbar-toggle-active' : ''}`}
-          onClick={() => onModeChange('snippet')}
-          title="Code snippet mode"
+          className={`toolbar-toggle-btn${viewMode === 'detail' ? ' toolbar-toggle-active' : ''}`}
+          onClick={() => onViewModeChange('detail')}
+          title="Detailed view — shows code preview"
         >
-          {/* Camera / snippet icon */}
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <rect x="2" y="5" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-            <circle cx="9" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.2" />
-            <path d="M6 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="3" y="2" width="12" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
+            <line x1="5.5" y1="6" x2="12.5" y2="6" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            <line x1="5.5" y1="9" x2="10.5" y2="9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            <line x1="5.5" y1="12" x2="8.5" y2="12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
           </svg>
         </button>
+        {/* Compact view — list of titles only */}
         <button
-          className={`toolbar-toggle-btn${mode === 'screen' ? ' toolbar-toggle-active' : ''}`}
-          onClick={() => onModeChange('screen')}
-          title="Screen clip mode"
+          className={`toolbar-toggle-btn${viewMode === 'compact' ? ' toolbar-toggle-active' : ''}`}
+          onClick={() => onViewModeChange('compact')}
+          title="Compact view — titles only"
         >
-          {/* Video camera icon */}
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <rect x="2" y="5" width="10" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-            <path d="M12 7.5l4-2v7l-4-2V7.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+            <line x1="3" y1="5" x2="15" y2="5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            <line x1="3" y1="9" x2="15" y2="9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            <line x1="3" y1="13" x2="15" y2="13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
         </button>
       </div>
 
       <div className="toolbar-separator" />
 
-      {/* ── Collection / Mode dropdown ── */}
+      {/* ── Collection dropdown (maps to Snipping Tool's mode picker) ── */}
       <div className="toolbar-dropdown-wrap">
         <button
           className={`toolbar-dropdown-btn${showCollectionMenu ? ' toolbar-dropdown-open' : ''}`}
@@ -105,7 +107,6 @@ export default function Toolbar({
           }}
           title="Select collection"
         >
-          {/* Rectangle / collection icon */}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path
               d="M2 3.5A1.5 1.5 0 013.5 2h3l1 1.5h4.5c.83 0 1.5.67 1.5 1.5V11a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 11V3.5z"
@@ -152,7 +153,7 @@ export default function Toolbar({
         )}
       </div>
 
-      {/* ── Sort / Delay dropdown ── */}
+      {/* ── Sort dropdown (maps to Snipping Tool's delay picker) ── */}
       <div className="toolbar-dropdown-wrap">
         <button
           className={`toolbar-dropdown-btn${showSortMenu ? ' toolbar-dropdown-open' : ''}`}
@@ -163,7 +164,6 @@ export default function Toolbar({
           }}
           title="Sort order"
         >
-          {/* Clock icon */}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.2" />
             <path d="M7 4v3l2 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -181,12 +181,13 @@ export default function Toolbar({
                 className={`toolbar-menu-item${sortOrder === key ? ' toolbar-menu-item-active' : ''}`}
                 onClick={() => { onSortChange(key); setShowSortMenu(false); }}
               >
-                {sortOrder === key && (
+                {sortOrder === key ? (
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M3 7l3 3 5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                   </svg>
+                ) : (
+                  <span style={{ width: 14, display: 'inline-block' }} />
                 )}
-                {sortOrder !== key && <span style={{ width: 14, display: 'inline-block' }} />}
                 {label}
               </button>
             ))}
@@ -194,7 +195,6 @@ export default function Toolbar({
         )}
       </div>
 
-      {/* ── Spacer ── */}
       <div className="toolbar-spacer" />
 
       {/* ── More options ── */}
@@ -216,7 +216,7 @@ export default function Toolbar({
         </button>
         {showMoreMenu && (
           <div className="toolbar-menu toolbar-menu-right">
-            <button className="toolbar-menu-item" onClick={() => { setShowMoreMenu(false); }}>
+            <button className="toolbar-menu-item" onClick={() => setShowMoreMenu(false)}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.2" />
                 <line x1="7" y1="5" x2="7" y2="9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
