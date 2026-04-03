@@ -4,6 +4,7 @@ import SnippetList from './components/SnippetList';
 import EditorPane from './components/EditorPane';
 import CommandPalette from './components/CommandPalette';
 import ShortcutBar from './components/ShortcutBar';
+import Toolbar, { type SortOrder, type SnipMode } from './components/Toolbar';
 import type { Snippet, Collection, Tag } from '../shared/types';
 
 export default function App() {
@@ -16,6 +17,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState<'none' | 'create' | 'edit'>('none');
   const [showPalette, setShowPalette] = useState(false);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('recent');
+  const [snipMode, setSnipMode] = useState<SnipMode>('snippet');
 
   const sidebarRef = useRef<{ triggerCreateCollection: () => void } | null>(null);
 
@@ -41,18 +44,28 @@ export default function App() {
     refreshTags();
   }, [refreshSnippets, refreshCollections, refreshTags]);
 
-  const filteredSnippets = snippets.filter((s) => {
-    if (selectedCollectionId !== null && s.collection_id !== selectedCollectionId) return false;
-    if (selectedTagId !== null && !(s.tags ?? []).some((t) => t.id === selectedTagId)) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const titleMatch = s.title.toLowerCase().includes(q);
-      const contentMatch = s.content.slice(0, 200).toLowerCase().includes(q);
-      const tagMatch = (s.tags ?? []).some((t) => t.name.toLowerCase().includes(q));
-      if (!titleMatch && !contentMatch && !tagMatch) return false;
-    }
-    return true;
-  });
+  const filteredSnippets = snippets
+    .filter((s) => {
+      if (selectedCollectionId !== null && s.collection_id !== selectedCollectionId) return false;
+      if (selectedTagId !== null && !(s.tags ?? []).some((t) => t.id === selectedTagId)) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const titleMatch = s.title.toLowerCase().includes(q);
+        const contentMatch = s.content.slice(0, 200).toLowerCase().includes(q);
+        const tagMatch = (s.tags ?? []).some((t) => t.name.toLowerCase().includes(q));
+        if (!titleMatch && !contentMatch && !tagMatch) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortOrder) {
+        case 'recent':  return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case 'oldest':  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'az':      return a.title.localeCompare(b.title);
+        case 'za':      return b.title.localeCompare(a.title);
+        default:        return 0;
+      }
+    });
 
   const handleCreateSnippet = () => {
     setSelectedSnippet(null);
@@ -170,6 +183,19 @@ export default function App() {
 
   return (
     <div className="app">
+      <Toolbar
+        collections={collections}
+        selectedCollectionId={selectedCollectionId}
+        sortOrder={sortOrder}
+        mode={snipMode}
+        onNewSnippet={handleCreateSnippet}
+        onSelectCollection={(id) => {
+          setSelectedCollectionId(id);
+          setSelectedTagId(null);
+        }}
+        onSortChange={setSortOrder}
+        onModeChange={setSnipMode}
+      />
       <div className="layout">
         <Sidebar
           ref={sidebarRef}
