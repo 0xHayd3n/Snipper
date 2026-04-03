@@ -114,6 +114,7 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     frame: true,
+    autoHideMenuBar: true,
     backgroundColor: '#f3f3f3',
     title: 'Snipper',
     webPreferences: {

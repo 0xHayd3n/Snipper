@@ -1,21 +1,60 @@
+/* ══════════════════════════════════════════════════════
+   Snipper — WinUI 3 / Windows 11 Snipping Tool Theme
+   ══════════════════════════════════════════════════════ */
+
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f3f3f3;
-  --bg-tertiary: #fafafa;
-  --bg-hover: #e9e9e9;
-  --border: #e5e5e5;
-  --border-strong: #d1d1d1;
-  --text-primary: #1a1a1a;
-  --text-secondary: #616161;
-  --text-tertiary: #999999;
-  --accent: #0078d4;
-  --accent-hover: #106ebe;
-  --accent-light: #e8f2fc;
-  --danger: #d13438;
-  --font-ui: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Cascadia Code', 'Consolas', 'JetBrains Mono', monospace;
-  --radius: 6px;
+  /* WinUI 3 Backgrounds */
+  --bg-mica: #f3f3f3;
+  --bg-card: #ffffff;
+  --bg-card-secondary: #f9f9f9;
+  --bg-smoke: rgba(0, 0, 0, 0.3);
+
+  /* WinUI 3 Fills */
+  --fill-subtle-rest: transparent;
+  --fill-subtle-hover: rgba(0, 0, 0, 0.04);
+  --fill-subtle-pressed: rgba(0, 0, 0, 0.03);
+  --fill-secondary: rgba(0, 0, 0, 0.04);
+  --fill-tertiary: rgba(0, 0, 0, 0.03);
+
+  /* WinUI 3 Borders */
+  --stroke-card: rgba(0, 0, 0, 0.06);
+  --stroke-default: rgba(0, 0, 0, 0.1);
+  --stroke-strong: rgba(0, 0, 0, 0.16);
+  --stroke-divider: rgba(0, 0, 0, 0.08);
+  --stroke-focus-outer: #1a1a1a;
+  --stroke-focus-inner: #ffffff;
+
+  /* WinUI 3 Typography */
+  --text-primary: rgba(0, 0, 0, 0.9);
+  --text-secondary: rgba(0, 0, 0, 0.61);
+  --text-tertiary: rgba(0, 0, 0, 0.45);
+  --text-disabled: rgba(0, 0, 0, 0.36);
+  --text-on-accent: #ffffff;
+
+  /* Accent */
+  --accent: #005fb8;
+  --accent-hover: #004c99;
+  --accent-pressed: #003d7e;
+  --accent-light: rgba(0, 95, 184, 0.08);
+  --accent-light-hover: rgba(0, 95, 184, 0.12);
+
+  /* Semantic */
+  --danger: #c42b1c;
+  --danger-bg: rgba(196, 43, 28, 0.08);
+
+  /* Typography */
+  --font-ui: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Cascadia Mono', 'Consolas', monospace;
+
+  /* WinUI 3 Radii */
+  --radius-sm: 4px;
+  --radius: 4px;
   --radius-lg: 8px;
+
+  /* Elevation */
+  --shadow-flyout: 0 8px 16px rgba(0, 0, 0, 0.14);
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-tooltip: 0 4px 8px rgba(0, 0, 0, 0.14);
 }
 
 * {
@@ -30,11 +69,12 @@ html, body, #root {
 }
 
 body {
-  background: var(--bg-secondary);
+  background: var(--bg-mica);
   color: var(--text-primary);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
   font-size: 14px;
+  line-height: 20px;
 }
 
 /* ── App Layout ── */
@@ -51,43 +91,42 @@ body {
   overflow: hidden;
 }
 
-/* ── Sidebar ── */
+/* ── Sidebar — WinUI NavigationView style ── */
 
 .sidebar {
   width: 220px;
   min-width: 220px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border);
+  background: transparent;
   display: flex;
   flex-direction: column;
+  padding: 8px 0 0;
 }
 
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding-top: 12px;
+  padding: 0 4px;
 }
 
 .sidebar-section {
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .sidebar-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px;
+  padding: 8px 12px 4px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
   color: var(--text-secondary);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   user-select: none;
 }
 
 .sidebar-add-btn {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
@@ -96,68 +135,87 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius);
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .sidebar-add-btn:hover {
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
   color: var(--text-primary);
 }
 
+/* WinUI NavigationView item — rounded rectangle with small pill indicator */
 .sidebar-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  height: 34px;
-  padding: 0 16px;
+  height: 36px;
+  padding: 0 12px;
   border: none;
-  background: transparent;
+  background: var(--fill-subtle-rest);
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.1s;
-  border-left: 3px solid transparent;
-  border-radius: 0;
+  transition: background 0.08s;
+  border-radius: var(--radius);
+  position: relative;
+  border-left: none;
+  margin: 1px 0;
 }
 
 .sidebar-row:hover {
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
+}
+
+.sidebar-row:active {
+  background: var(--fill-subtle-pressed);
 }
 
 .sidebar-row-active {
-  border-left-color: var(--accent);
-  background: var(--accent-light);
-  color: var(--accent);
-  font-weight: 500;
+  background: var(--fill-subtle-hover);
+  font-weight: 600;
+}
+
+/* WinUI 3 pill indicator on active item */
+.sidebar-row-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 1.5px;
 }
 
 .sidebar-input {
   display: block;
-  width: calc(100% - 32px);
-  margin: 2px 16px;
-  padding: 4px 8px;
-  height: 30px;
-  border: 1px solid var(--border-strong);
+  width: calc(100% - 8px);
+  margin: 2px 4px;
+  padding: 0 12px;
+  height: 32px;
+  border: 1px solid var(--stroke-default);
+  border-bottom: 2px solid var(--accent);
   border-radius: var(--radius);
-  background: var(--bg-primary);
+  background: var(--bg-card);
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
 }
 
 .sidebar-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-color: var(--stroke-default);
+  border-bottom-color: var(--accent);
 }
 
 .sidebar-empty {
   display: block;
-  padding: 4px 16px;
-  font-size: 12px;
+  padding: 4px 12px;
+  font-size: 13px;
   color: var(--text-tertiary);
 }
 
@@ -169,46 +227,50 @@ body {
 }
 
 .sidebar-footer {
-  padding: 10px 16px;
+  padding: 12px 16px;
   font-size: 12px;
   color: var(--text-tertiary);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--stroke-divider);
 }
 
-/* ── Snippet List ── */
+/* ── Snippet List — WinUI ListView style ── */
 
 .snippet-list {
   width: 320px;
   min-width: 320px;
-  background: var(--bg-tertiary);
-  border-right: 1px solid var(--border);
+  background: var(--bg-card);
+  border-left: 1px solid var(--stroke-card);
+  border-right: 1px solid var(--stroke-card);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-card);
 }
 
 .snippet-list-toolbar {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
 }
 
+/* WinUI 3 AutoSuggestBox style search */
 .search-bar {
   display: flex;
   align-items: center;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  border: 1px solid var(--stroke-default);
+  border-bottom: 1px solid var(--stroke-strong);
   border-radius: var(--radius);
   padding: 0 10px;
-  height: 34px;
+  height: 32px;
   gap: 8px;
+  transition: border-color 0.08s;
 }
 
 .search-bar:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0;
 }
 
 .search-icon {
@@ -222,7 +284,7 @@ body {
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
 }
 
@@ -231,8 +293,8 @@ body {
 }
 
 .search-clear {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   color: var(--text-tertiary);
@@ -246,34 +308,44 @@ body {
 
 .search-clear:hover {
   color: var(--text-primary);
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
 }
 
+/* WinUI 3 Accent Button */
 .new-snippet-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   width: 100%;
-  height: 34px;
-  border: 1px solid var(--accent);
+  height: 32px;
+  border: 1px solid transparent;
   border-radius: var(--radius);
-  background: transparent;
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--text-on-accent);
   font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .new-snippet-btn:hover {
-  background: var(--accent-light);
+  background: var(--accent-hover);
+}
+
+.new-snippet-btn:active {
+  background: var(--accent-pressed);
+}
+
+.new-snippet-btn svg {
+  stroke: var(--text-on-accent);
 }
 
 .snippet-list-scroll {
   flex: 1;
   overflow-y: auto;
+  padding: 2px 4px;
 }
 
 .snippet-list-empty {
@@ -287,43 +359,60 @@ body {
   font-size: 13px;
 }
 
+/* WinUI ListView item */
 .snippet-card {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: none;
-  border-bottom: 1px solid var(--border);
-  border-left: 3px solid transparent;
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-ui);
   text-align: left;
   cursor: pointer;
-  transition: background 0.1s;
-  min-height: 72px;
+  transition: background 0.08s;
+  min-height: 60px;
+  border-radius: var(--radius);
+  margin: 1px 0;
+  position: relative;
 }
 
 .snippet-card:hover {
-  background: var(--bg-primary);
+  background: var(--fill-subtle-hover);
+}
+
+.snippet-card:active {
+  background: var(--fill-subtle-pressed);
 }
 
 .snippet-card-active {
-  border-left-color: var(--accent);
-  background: var(--bg-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  background: var(--fill-subtle-hover);
+}
+
+/* WinUI pill indicator on selected card */
+.snippet-card-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 1.5px;
 }
 
 .snippet-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   gap: 8px;
 }
 
 .snippet-card-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -332,25 +421,25 @@ body {
 
 .snippet-card-lang {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   color: var(--accent);
   background: var(--accent-light);
-  padding: 2px 7px;
-  border-radius: 10px;
+  padding: 1px 8px;
+  border-radius: 2px;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
 .snippet-card-preview {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--text-secondary);
   overflow: hidden;
   white-space: pre;
   text-overflow: ellipsis;
-  max-height: 49px;
+  max-height: 42px;
 }
 
 .snippet-card-tags {
@@ -361,11 +450,12 @@ body {
 }
 
 .snippet-card-tag {
-  font-size: 10px;
-  padding: 1px 6px;
+  font-size: 11px;
+  padding: 0 6px;
   border: 1px solid;
-  border-radius: 8px;
+  border-radius: 2px;
   font-weight: 500;
+  line-height: 18px;
 }
 
 /* ── Editor Pane ── */
@@ -374,7 +464,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg-primary);
+  background: var(--bg-card);
   overflow: hidden;
 }
 
@@ -389,12 +479,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 44px;
+  height: 48px;
   padding: 0 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--stroke-divider);
   flex-shrink: 0;
-  gap: 10px;
-  background: var(--bg-tertiary);
+  gap: 12px;
+  background: var(--bg-card);
 }
 
 .editor-title {
@@ -408,23 +498,25 @@ body {
   min-width: 0;
 }
 
+/* WinUI TextBox */
 .editor-title-input {
   flex: 1;
   min-width: 0;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--border-strong);
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--stroke-default);
+  border-bottom: 1px solid var(--stroke-strong);
   border-radius: var(--radius);
-  background: var(--bg-primary);
+  background: var(--bg-card);
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 14px;
   outline: none;
+  transition: border-color 0.08s;
 }
 
 .editor-title-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-bottom: 2px solid var(--accent);
 }
 
 .editor-actions {
@@ -434,11 +526,12 @@ body {
   flex-shrink: 0;
 }
 
+/* WinUI badge/chip */
 .editor-lang-badge {
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   color: var(--text-secondary);
-  background: var(--bg-secondary);
+  background: var(--fill-secondary);
   padding: 4px 10px;
   border-radius: var(--radius);
   font-weight: 500;
@@ -446,51 +539,54 @@ body {
 
 .editor-lang-btn {
   cursor: pointer;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--stroke-default);
   display: flex;
   align-items: center;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .editor-lang-btn:hover {
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
 }
 
 .lang-dropdown-wrapper {
   position: relative;
 }
 
+/* WinUI Flyout */
 .lang-dropdown {
   position: absolute;
   top: 100%;
   right: 0;
   margin-top: 4px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  border: 1px solid var(--stroke-card);
   border-radius: var(--radius-lg);
-  padding: 4px 0;
+  padding: 2px;
   z-index: 100;
-  min-width: 150px;
-  max-height: 240px;
+  min-width: 160px;
+  max-height: 280px;
   overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow-flyout);
 }
 
 .lang-dropdown-item {
   display: block;
   width: 100%;
-  padding: 7px 14px;
+  padding: 6px 12px;
   border: none;
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.08s;
 }
 
 .lang-dropdown-item:hover {
-  background: var(--accent-light);
+  background: var(--fill-subtle-hover);
 }
 
 .lang-dropdown-active {
@@ -498,110 +594,119 @@ body {
   font-weight: 600;
 }
 
+/* WinUI Button (icon) */
 .editor-icon-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--stroke-default);
   border-radius: var(--radius);
-  background: var(--bg-primary);
+  background: var(--bg-card);
   color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.08s;
 }
 
 .editor-icon-btn:hover {
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
   color: var(--text-primary);
 }
 
 .editor-icon-btn-danger:hover {
-  background: #fde7e7;
+  background: var(--danger-bg);
   color: var(--danger);
   border-color: var(--danger);
 }
 
+/* WinUI AccentButton */
 .editor-save-btn {
-  height: 30px;
+  height: 32px;
   padding: 0 16px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--accent);
-  color: #ffffff;
+  color: var(--text-on-accent);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .editor-save-btn:hover {
   background: var(--accent-hover);
 }
 
+.editor-save-btn:active {
+  background: var(--accent-pressed);
+}
+
+/* WinUI Button (standard) */
 .editor-cancel-btn {
-  height: 30px;
+  height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--stroke-default);
+  border-bottom: 1px solid var(--stroke-strong);
   border-radius: var(--radius);
-  background: var(--bg-primary);
-  color: var(--text-secondary);
+  background: var(--bg-card);
+  color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .editor-cancel-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--fill-subtle-hover);
 }
 
 .editor-copy-btn {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 12px;
-  border: 1px solid var(--border-strong);
+  padding: 0 12px;
+  height: 32px;
+  border: 1px solid var(--stroke-default);
+  border-bottom: 1px solid var(--stroke-strong);
   border-radius: var(--radius);
-  background: var(--bg-primary);
+  background: var(--bg-card);
   color: var(--text-secondary);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .editor-copy-btn:hover {
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
   color: var(--text-primary);
 }
 
-/* ── Confirm Bar ── */
+/* ── Confirm Bar — WinUI InfoBar style ── */
 
 .editor-confirm-bar {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 16px;
-  background: #fff8e6;
-  border-bottom: 1px solid #eed48c;
-  font-size: 13px;
+  background: #fff4ce;
+  border-bottom: 1px solid #e8d48a;
+  font-size: 14px;
   color: var(--text-primary);
   flex-shrink: 0;
 }
 
 .confirm-yes {
-  padding: 3px 12px;
-  border: none;
+  padding: 4px 12px;
+  border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--danger);
-  color: #fff;
+  color: var(--text-on-accent);
   font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -610,19 +715,18 @@ body {
 }
 
 .confirm-no {
-  padding: 3px 12px;
-  border: 1px solid var(--border-strong);
+  padding: 4px 12px;
+  border: 1px solid var(--stroke-default);
   border-radius: var(--radius);
-  background: var(--bg-primary);
-  color: var(--text-secondary);
+  background: var(--bg-card);
+  color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 
 .confirm-no:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--fill-subtle-hover);
 }
 
 /* ── CodeMirror ── */
@@ -643,10 +747,10 @@ body {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--stroke-divider);
   flex-wrap: wrap;
   flex-shrink: 0;
-  background: var(--bg-tertiary);
+  background: var(--bg-card);
 }
 
 .editor-tag-label {
@@ -654,23 +758,23 @@ body {
   color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .editor-tag-chip {
   font-size: 12px;
-  padding: 3px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  background: var(--bg-primary);
+  padding: 2px 10px;
+  border: 1px solid var(--stroke-default);
+  border-radius: var(--radius);
+  background: var(--bg-card);
   color: var(--text-secondary);
   font-family: var(--font-ui);
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .editor-tag-chip:hover {
-  background: var(--bg-hover);
+  background: var(--fill-subtle-hover);
 }
 
 .editor-tag-chip-active {
@@ -679,14 +783,14 @@ body {
 
 .editor-tag-add {
   font-size: 12px;
-  padding: 3px 10px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 12px;
+  padding: 2px 10px;
+  border: 1px dashed var(--stroke-default);
+  border-radius: var(--radius);
   background: transparent;
   color: var(--text-tertiary);
   font-family: var(--font-ui);
   cursor: pointer;
-  transition: color 0.1s, border-color 0.1s;
+  transition: color 0.08s, border-color 0.08s;
 }
 
 .editor-tag-add:hover {
@@ -702,20 +806,16 @@ body {
 
 .new-tag-input {
   width: 110px;
-  height: 26px;
+  height: 28px;
   padding: 0 8px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--stroke-default);
+  border-bottom: 2px solid var(--accent);
   border-radius: var(--radius);
-  background: var(--bg-primary);
+  background: var(--bg-card);
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 12px;
   outline: none;
-}
-
-.new-tag-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .new-tag-colours {
@@ -731,11 +831,11 @@ body {
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
-  transition: border-color 0.1s;
+  transition: border-color 0.08s;
 }
 
 .colour-swatch:hover {
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .colour-swatch-active {
@@ -765,9 +865,9 @@ body {
   font-size: 14px;
 }
 
-/* Scrollbar styling */
+/* WinUI 3 thin overlay scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -775,34 +875,34 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a0a0a0;
+  background: rgba(0, 0, 0, 0.35);
 }
 
-/* ── Command Palette ── */
+/* ── Command Palette — WinUI Dialog/Flyout ── */
 
 .palette-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg-smoke);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 100px;
+  padding-top: 80px;
   z-index: 1000;
 }
 
 .palette {
-  width: 600px;
-  max-height: 400px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-strong);
+  width: 580px;
+  max-height: 420px;
+  background: var(--bg-card);
+  border: 1px solid var(--stroke-card);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-flyout);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -810,10 +910,10 @@ body {
 
 .palette-input {
   width: 100%;
-  height: 46px;
+  height: 44px;
   padding: 0 16px;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--stroke-divider);
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-ui);
@@ -828,38 +928,52 @@ body {
 .palette-results {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 2px;
 }
 
 .palette-empty {
-  padding: 20px;
+  padding: 24px;
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: 14px;
 }
 
+/* WinUI ListView item in palette */
 .palette-row {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  height: 44px;
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 14px;
   border: none;
-  border-left: 3px solid transparent;
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.08s;
+  transition: background 0.06s;
+  border-radius: var(--radius);
+  position: relative;
+  border-left: none;
 }
 
 .palette-row:hover,
 .palette-row-active {
-  border-left-color: var(--accent);
-  background: var(--accent-light);
+  background: var(--fill-subtle-hover);
+}
+
+.palette-row-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 1.5px;
 }
 
 .palette-icon {
@@ -888,7 +1002,7 @@ body {
 }
 
 .palette-subtitle {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -896,10 +1010,10 @@ body {
 }
 
 .palette-type {
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -912,18 +1026,18 @@ body {
   justify-content: center;
   gap: 8px;
   height: 28px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
+  background: var(--bg-mica);
+  border-top: 1px solid var(--stroke-divider);
   flex-shrink: 0;
 }
 
 .shortcut-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-tertiary);
 }
 
 .shortcut-sep {
-  color: var(--border-strong);
+  color: var(--text-disabled);
   font-size: 11px;
 }
 
@@ -933,27 +1047,27 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   text-align: center;
 }
 
 .welcome-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
   background: var(--accent);
-  color: #ffffff;
-  font-size: 28px;
+  color: var(--text-on-accent);
+  font-size: 32px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   font-family: var(--font-ui);
 }
 
 .welcome-heading {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -961,24 +1075,30 @@ body {
 .welcome-subtitle {
   font-size: 14px;
   color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
 .welcome-btn {
   margin-top: 8px;
-  padding: 10px 24px;
-  border: none;
+  padding: 0 24px;
+  height: 32px;
+  border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--accent);
-  color: #ffffff;
+  color: var(--text-on-accent);
   font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
 .welcome-btn:hover {
   background: var(--accent-hover);
+}
+
+.welcome-btn:active {
+  background: var(--accent-pressed);
 }
 
 /* ── Collection Empty State ── */
@@ -988,7 +1108,7 @@ body {
   background: transparent;
   color: var(--accent);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;

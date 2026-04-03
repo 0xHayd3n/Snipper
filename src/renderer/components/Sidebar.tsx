@@ -66,7 +66,7 @@ export default forwardRef<SidebarHandle, SidebarProps>(function Sidebar(
             onMouseEnter={() => setCollectionsHover(true)}
             onMouseLeave={() => setCollectionsHover(false)}
           >
-            <span>Collections</span>
+            <span>COLLECTIONS</span>
             {collectionsHover && (
               <button
                 className="sidebar-add-btn"
@@ -119,7 +119,7 @@ export default forwardRef<SidebarHandle, SidebarProps>(function Sidebar(
 
         <div className="sidebar-section">
           <div className="sidebar-section-header">
-            <span>Tags</span>
+            <span>TAGS</span>
           </div>
           {tags.length === 0 && (
             <span className="sidebar-empty">No tags</span>

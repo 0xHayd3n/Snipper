@@ -17,19 +17,20 @@ const SUPPORTED_LANGUAGES = [
   'python', 'css', 'html', 'json', 'markdown', 'sql', 'plaintext',
 ];
 
-const TAG_COLOURS = ['#0078d4', '#107c10', '#ca5010', '#8764b8', '#e74856', '#00b7c3'];
+const TAG_COLOURS = ['#005fb8', '#107c10', '#ca5010', '#8764b8', '#c42b1c', '#00b7c3'];
 
 const lightTheme = EditorViewTheme.theme({
   '&': { backgroundColor: '#ffffff', height: '100%' },
-  '.cm-gutters': { backgroundColor: '#f9f9f9', borderRight: '1px solid #e5e5e5', color: '#999' },
-  '.cm-content': { fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#1e1e1e' },
+  '.cm-gutters': { backgroundColor: '#fafafa', borderRight: '1px solid rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.35)' },
+  '.cm-content': { fontFamily: "'Cascadia Code', 'Cascadia Mono', 'Consolas', monospace", fontSize: '13px', color: 'rgba(0,0,0,0.9)', lineHeight: '1.6' },
   '.cm-scroller': { overflow: 'auto' },
-  '.cm-activeLine': { backgroundColor: '#f0f4ff' },
-  '.cm-activeLineGutter': { backgroundColor: '#f0f4ff' },
-  '.cm-selectionBackground': { backgroundColor: '#b4d8fd !important' },
-  '&.cm-focused .cm-selectionBackground': { backgroundColor: '#b4d8fd !important' },
-  '.cm-cursor': { borderLeftColor: '#1e1e1e' },
-  '.cm-matchingBracket': { backgroundColor: '#d4e9d4', color: '#1e1e1e' },
+  '.cm-activeLine': { backgroundColor: 'rgba(0, 95, 184, 0.04)' },
+  '.cm-activeLineGutter': { backgroundColor: 'rgba(0, 95, 184, 0.04)' },
+  '.cm-selectionBackground': { backgroundColor: 'rgba(0, 95, 184, 0.2) !important' },
+  '&.cm-focused .cm-selectionBackground': { backgroundColor: 'rgba(0, 95, 184, 0.2) !important' },
+  '.cm-cursor': { borderLeftColor: 'rgba(0,0,0,0.9)' },
+  '.cm-matchingBracket': { backgroundColor: 'rgba(0, 95, 184, 0.12)', color: 'rgba(0,0,0,0.9)' },
+  '.cm-lineNumbers .cm-gutterElement': { padding: '0 8px 0 12px' },
 });
 
 function getLanguageExtension(lang: string) {
