@@ -20,6 +20,7 @@ export interface Snippet {
   collection_id: number;
   created_at: string;
   updated_at: string;
+  tags?: Tag[];
 }
 
 export interface SnippetTag {
@@ -34,6 +35,7 @@ export interface CreateSnippetInput {
   content: string;
   language: string;
   collection_id: number;
+  tag_ids?: number[];
 }
 
 export interface UpdateSnippetInput {
@@ -42,10 +44,16 @@ export interface UpdateSnippetInput {
   content?: string;
   language?: string;
   collection_id?: number;
+  tag_ids?: number[];
 }
 
 export interface CreateCollectionInput {
   name: string;
+}
+
+export interface CreateTagInput {
+  name: string;
+  colour: string;
 }
 
 // ── IPC Channel Map ──
@@ -57,7 +65,10 @@ export interface IpcChannels {
   'snippets:delete': (id: number) => Promise<void>;
   'collections:getAll': () => Promise<Collection[]>;
   'collections:create': (input: CreateCollectionInput) => Promise<Collection>;
+  'collections:delete': (id: number) => Promise<void>;
   'tags:getAll': () => Promise<Tag[]>;
+  'tags:create': (input: CreateTagInput) => Promise<Tag>;
+  'tags:delete': (id: number) => Promise<void>;
 }
 
 // ── Window API exposed via preload ──
@@ -72,9 +83,12 @@ export interface SnipperAPI {
   collections: {
     getAll: () => Promise<Collection[]>;
     create: (input: CreateCollectionInput) => Promise<Collection>;
+    delete: (id: number) => Promise<void>;
   };
   tags: {
     getAll: () => Promise<Tag[]>;
+    create: (input: CreateTagInput) => Promise<Tag>;
+    delete: (id: number) => Promise<void>;
   };
   window: {
     minimize: () => void;

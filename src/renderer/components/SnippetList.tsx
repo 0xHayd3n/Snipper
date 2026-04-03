@@ -5,37 +5,80 @@ interface SnippetListProps {
   snippets: Snippet[];
   selectedId: number | null;
   onSelect: (snippet: Snippet) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onNewSnippet: () => void;
 }
 
-export default function SnippetList({ snippets, selectedId, onSelect }: SnippetListProps) {
-  if (snippets.length === 0) {
-    return (
-      <div className="snippet-list">
-        <div className="snippet-list-empty">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <rect x="8" y="4" width="24" height="32" rx="2" stroke="var(--text-secondary)" strokeWidth="1.5" />
-            <line x1="13" y1="12" x2="27" y2="12" stroke="var(--text-secondary)" strokeWidth="1.2" />
-            <line x1="13" y1="18" x2="24" y2="18" stroke="var(--text-secondary)" strokeWidth="1.2" />
-            <line x1="13" y1="24" x2="20" y2="24" stroke="var(--text-secondary)" strokeWidth="1.2" />
-          </svg>
-          <span>No snippets yet</span>
-        </div>
-      </div>
-    );
-  }
-
+export default function SnippetList({
+  snippets,
+  selectedId,
+  onSelect,
+  searchQuery,
+  onSearchChange,
+  onNewSnippet,
+}: SnippetListProps) {
   return (
     <div className="snippet-list">
-      <div className="snippet-list-scroll">
-        {snippets.map((snippet) => (
-          <SnippetCard
-            key={snippet.id}
-            snippet={snippet}
-            selected={snippet.id === selectedId}
-            onClick={() => onSelect(snippet)}
+      <div className="snippet-list-toolbar">
+        <div className="search-bar">
+          <svg className="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2" />
+            <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search snippets..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
-        ))}
+          {searchQuery && (
+            <button className="search-clear" onClick={() => onSearchChange('')} aria-label="Clear search">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="1.2" />
+                <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
+            </button>
+          )}
+        </div>
+        <button className="new-snippet-btn" onClick={onNewSnippet}>
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" strokeWidth="1.4" />
+            <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" strokeWidth="1.4" />
+          </svg>
+          New Snippet
+        </button>
       </div>
+
+      {snippets.length === 0 ? (
+        <div className="snippet-list-empty">
+          {searchQuery ? (
+            <span>No results for &lsquo;{searchQuery}&rsquo;</span>
+          ) : (
+            <>
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <rect x="8" y="4" width="24" height="32" rx="2" stroke="var(--text-secondary)" strokeWidth="1.5" />
+                <line x1="13" y1="12" x2="27" y2="12" stroke="var(--text-secondary)" strokeWidth="1.2" />
+                <line x1="13" y1="18" x2="24" y2="18" stroke="var(--text-secondary)" strokeWidth="1.2" />
+                <line x1="13" y1="24" x2="20" y2="24" stroke="var(--text-secondary)" strokeWidth="1.2" />
+              </svg>
+              <span>No snippets yet</span>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="snippet-list-scroll">
+          {snippets.map((snippet) => (
+            <SnippetCard
+              key={snippet.id}
+              snippet={snippet}
+              selected={snippet.id === selectedId}
+              onClick={() => onSelect(snippet)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -65,6 +108,15 @@ function SnippetCard({
       </div>
       {previewLines && (
         <pre className="snippet-card-preview">{previewLines}</pre>
+      )}
+      {(snippet.tags ?? []).length > 0 && (
+        <div className="snippet-card-tags">
+          {(snippet.tags ?? []).map((t) => (
+            <span key={t.id} className="snippet-card-tag" style={{ borderColor: t.colour, color: t.colour }}>
+              {t.name}
+            </span>
+          ))}
+        </div>
       )}
     </button>
   );

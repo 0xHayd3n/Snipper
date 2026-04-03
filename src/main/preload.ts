@@ -11,9 +11,12 @@ const api: SnipperAPI = {
   collections: {
     getAll: () => ipcRenderer.invoke('collections:getAll'),
     create: (input) => ipcRenderer.invoke('collections:create', input),
+    delete: (id) => ipcRenderer.invoke('collections:delete', id),
   },
   tags: {
     getAll: () => ipcRenderer.invoke('tags:getAll'),
+    create: (input) => ipcRenderer.invoke('tags:create', input),
+    delete: (id) => ipcRenderer.invoke('tags:delete', id),
   },
   window: {
     minimize: () => ipcRenderer.send('window:minimize'),

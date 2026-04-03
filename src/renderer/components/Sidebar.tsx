@@ -1,47 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { Collection, Tag } from '../../shared/types';
 
 interface SidebarProps {
+  collections: Collection[];
+  tags: Tag[];
   snippetCount: number;
   selectedCollectionId: number | null;
   selectedTagId: number | null;
   onSelectCollection: (id: number | null) => void;
   onSelectTag: (id: number | null) => void;
+  onCollectionsChange: () => void;
 }
 
 export default function Sidebar({
+  collections,
+  tags,
   snippetCount,
   selectedCollectionId,
   selectedTagId,
   onSelectCollection,
   onSelectTag,
+  onCollectionsChange,
 }: SidebarProps) {
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   const [collectionsHover, setCollectionsHover] = useState(false);
   const [creatingCollection, setCreatingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
-
-  useEffect(() => {
-    window.snipper.collections.getAll().then(setCollections);
-    window.snipper.tags.getAll().then(setTags);
-  }, []);
 
   const handleCreateCollection = async () => {
     const name = newCollectionName.trim();
     if (!name) return;
     const created = await window.snipper.collections.create({ name });
-    setCollections((prev) => [...prev, created]);
     setNewCollectionName('');
     setCreatingCollection(false);
+    onCollectionsChange();
+    onSelectCollection(created.id);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleCreateCollection();
-    if (e.key === 'Escape') setCreatingCollection(false);
+    if (e.key === 'Escape') {
+      setCreatingCollection(false);
+      setNewCollectionName('');
+    }
   };
 
-  // "All Snippets" is selected when collectionId is null and no tag is selected
   const allSelected = selectedCollectionId === null && selectedTagId === null;
 
   return (
@@ -82,10 +84,7 @@ export default function Sidebar({
             <button
               key={c.id}
               className={`sidebar-row${selectedCollectionId === c.id ? ' sidebar-row-active' : ''}`}
-              onClick={() => {
-                onSelectCollection(c.id);
-                onSelectTag(null);
-              }}
+              onClick={() => onSelectCollection(c.id)}
             >
               {c.name}
             </button>
@@ -97,7 +96,10 @@ export default function Sidebar({
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
               onKeyDown={handleKeyDown}
-              onBlur={() => setCreatingCollection(false)}
+              onBlur={() => {
+                setCreatingCollection(false);
+                setNewCollectionName('');
+              }}
               placeholder="Collection name"
               autoFocus
             />
@@ -116,8 +118,11 @@ export default function Sidebar({
               key={t.id}
               className={`sidebar-row sidebar-tag-row${selectedTagId === t.id ? ' sidebar-row-active' : ''}`}
               onClick={() => {
-                onSelectTag(t.id);
-                onSelectCollection(null);
+                if (selectedTagId === t.id) {
+                  onSelectTag(null);
+                } else {
+                  onSelectTag(t.id);
+                }
               }}
             >
               <span className="tag-dot" style={{ background: t.colour }} />
