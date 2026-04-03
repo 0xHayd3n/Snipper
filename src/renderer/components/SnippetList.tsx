@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { Snippet } from '../../shared/types';
 
 interface SnippetListProps {
   snippets: Snippet[];
+  allSnippets: Snippet[];
   selectedId: number | null;
+  selectedCollectionId: number | null;
   onSelect: (snippet: Snippet) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -12,12 +14,30 @@ interface SnippetListProps {
 
 export default function SnippetList({
   snippets,
+  allSnippets,
   selectedId,
+  selectedCollectionId,
   onSelect,
   searchQuery,
   onSearchChange,
   onNewSnippet,
 }: SnippetListProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll selected card into view
+  useEffect(() => {
+    if (selectedId === null || !scrollRef.current) return;
+    const el = scrollRef.current.querySelector(`[data-snippet-id="${selectedId}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId]);
+
+  // Determine if we should show collection-specific empty state
+  const isCollectionEmpty =
+    !searchQuery &&
+    selectedCollectionId !== null &&
+    snippets.length === 0 &&
+    allSnippets.some((s) => s.collection_id !== selectedCollectionId);
+
   return (
     <div className="snippet-list">
       <div className="snippet-list-toolbar">
@@ -55,6 +75,14 @@ export default function SnippetList({
         <div className="snippet-list-empty">
           {searchQuery ? (
             <span>No results for &lsquo;{searchQuery}&rsquo;</span>
+          ) : isCollectionEmpty ? (
+            <>
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M6 12A3 3 0 019 9h8l3 3h11a3 3 0 013 3v13a3 3 0 01-3 3H9a3 3 0 01-3-3V12z" stroke="var(--text-secondary)" strokeWidth="1.5" />
+              </svg>
+              <span>This collection is empty</span>
+              <button className="empty-action-link" onClick={onNewSnippet}>Add a snippet</button>
+            </>
           ) : (
             <>
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -68,7 +96,7 @@ export default function SnippetList({
           )}
         </div>
       ) : (
-        <div className="snippet-list-scroll">
+        <div className="snippet-list-scroll" ref={scrollRef}>
           {snippets.map((snippet) => (
             <SnippetCard
               key={snippet.id}
@@ -101,6 +129,7 @@ function SnippetCard({
     <button
       className={`snippet-card${selected ? ' snippet-card-active' : ''}`}
       onClick={onClick}
+      data-snippet-id={snippet.id}
     >
       <div className="snippet-card-header">
         <span className="snippet-card-title">{snippet.title}</span>

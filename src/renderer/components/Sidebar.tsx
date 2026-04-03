@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import type { Collection, Tag } from '../../shared/types';
 
 interface SidebarProps {
@@ -12,19 +12,30 @@ interface SidebarProps {
   onCollectionsChange: () => void;
 }
 
-export default function Sidebar({
-  collections,
-  tags,
-  snippetCount,
-  selectedCollectionId,
-  selectedTagId,
-  onSelectCollection,
-  onSelectTag,
-  onCollectionsChange,
-}: SidebarProps) {
+export interface SidebarHandle {
+  triggerCreateCollection: () => void;
+}
+
+export default forwardRef<SidebarHandle, SidebarProps>(function Sidebar(
+  {
+    collections,
+    tags,
+    snippetCount,
+    selectedCollectionId,
+    selectedTagId,
+    onSelectCollection,
+    onSelectTag,
+    onCollectionsChange,
+  },
+  ref
+) {
   const [collectionsHover, setCollectionsHover] = useState(false);
   const [creatingCollection, setCreatingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
+
+  useImperativeHandle(ref, () => ({
+    triggerCreateCollection: () => setCreatingCollection(true),
+  }));
 
   const handleCreateCollection = async () => {
     const name = newCollectionName.trim();
@@ -137,4 +148,4 @@ export default function Sidebar({
       </div>
     </aside>
   );
-}
+});

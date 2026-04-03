@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import TitleBar from './components/TitleBar';
 import Sidebar from './components/Sidebar';
 import SnippetList from './components/SnippetList';
 import EditorPane from './components/EditorPane';
+import CommandPalette from './components/CommandPalette';
+import ShortcutBar from './components/ShortcutBar';
 import type { Snippet, Collection, Tag } from '../shared/types';
 
 export default function App() {
@@ -14,6 +16,9 @@ export default function App() {
   const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState<'none' | 'create' | 'edit'>('none');
+  const [showPalette, setShowPalette] = useState(false);
+
+  const sidebarRef = useRef<{ triggerCreateCollection: () => void } | null>(null);
 
   const refreshSnippets = useCallback(async () => {
     const all = await window.snipper.snippets.getAll();
@@ -54,6 +59,7 @@ export default function App() {
   const handleCreateSnippet = () => {
     setSelectedSnippet(null);
     setEditMode('create');
+    setShowPalette(false);
   };
 
   const handleEditSnippet = () => {
@@ -67,7 +73,6 @@ export default function App() {
     tag_ids: number[];
   }) => {
     if (editMode === 'create') {
-      // Use selected collection, or fall back to first collection
       const collectionId = selectedCollectionId ?? collections[0]?.id ?? 1;
       const created = await window.snipper.snippets.create({
         title: data.title,
@@ -77,7 +82,6 @@ export default function App() {
         tag_ids: data.tag_ids,
       });
       const all = await refreshSnippets();
-      // Re-select from refreshed list to get full data
       setSelectedSnippet(all.find((s) => s.id === created.id) ?? created);
     } else if (editMode === 'edit' && selectedSnippet) {
       const updated = await window.snipper.snippets.update({
@@ -96,7 +100,6 @@ export default function App() {
 
   const handleCancelEdit = () => {
     setEditMode('none');
-    // If creating, go back to no selection
     if (editMode === 'create') {
       setSelectedSnippet(null);
     }
@@ -110,15 +113,79 @@ export default function App() {
   };
 
   const handleSelectSnippet = (snippet: Snippet) => {
-    if (editMode !== 'none') return; // block selection during edit
+    if (editMode !== 'none') return;
     setSelectedSnippet(snippet);
   };
+
+  // Arrow key navigation in snippet list
+  const handleNavigateSnippets = (direction: 'up' | 'down') => {
+    if (editMode !== 'none' || filteredSnippets.length === 0) return;
+    const currentIdx = selectedSnippet
+      ? filteredSnippets.findIndex((s) => s.id === selectedSnippet.id)
+      : -1;
+    let nextIdx: number;
+    if (direction === 'down') {
+      nextIdx = currentIdx < filteredSnippets.length - 1 ? currentIdx + 1 : 0;
+    } else {
+      nextIdx = currentIdx > 0 ? currentIdx - 1 : filteredSnippets.length - 1;
+    }
+    setSelectedSnippet(filteredSnippets[nextIdx]);
+  };
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+
+      // Cmd/Ctrl+K: command palette
+      if (mod && e.key === 'k') {
+        e.preventDefault();
+        setShowPalette((prev) => !prev);
+        return;
+      }
+
+      // Cmd/Ctrl+N: new snippet
+      if (mod && e.key === 'n') {
+        e.preventDefault();
+        handleCreateSnippet();
+        return;
+      }
+
+      // Escape: close palette / cancel edit / clear search
+      if (e.key === 'Escape') {
+        if (showPalette) {
+          setShowPalette(false);
+        } else if (editMode !== 'none') {
+          // Let EditorPane handle its own cancel logic
+        } else if (searchQuery) {
+          setSearchQuery('');
+        }
+        return;
+      }
+
+      // Cmd/Ctrl+Enter: save (handled in EditorPane)
+      // Arrow navigation when not in an input/textarea/editor
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        // Don't navigate when inside CodeMirror
+        if ((e.target as HTMLElement).closest('.cm-editor')) return;
+        if (showPalette) return;
+        e.preventDefault();
+        handleNavigateSnippets(e.key === 'ArrowDown' ? 'down' : 'up');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showPalette, editMode, searchQuery, selectedSnippet, filteredSnippets]);
 
   return (
     <div className="app">
       <TitleBar />
       <div className="layout">
         <Sidebar
+          ref={sidebarRef}
           collections={collections}
           tags={tags}
           snippetCount={snippets.length}
@@ -136,7 +203,9 @@ export default function App() {
         />
         <SnippetList
           snippets={filteredSnippets}
+          allSnippets={snippets}
           selectedId={selectedSnippet?.id ?? null}
+          selectedCollectionId={selectedCollectionId}
           onSelect={handleSelectSnippet}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -146,13 +215,27 @@ export default function App() {
           snippet={selectedSnippet}
           editMode={editMode}
           tags={tags}
+          totalSnippetCount={snippets.length}
           onEdit={handleEditSnippet}
           onSave={handleSaveSnippet}
           onCancel={handleCancelEdit}
           onDelete={handleDeleteSnippet}
           onTagsChange={refreshTags}
+          onCreateSnippet={handleCreateSnippet}
         />
       </div>
+      <ShortcutBar />
+      {showPalette && (
+        <CommandPalette
+          snippets={snippets}
+          collections={collections}
+          onSelectSnippet={(s) => { setSelectedSnippet(s); setEditMode('none'); }}
+          onSelectCollection={(id) => { setSelectedCollectionId(id); setSelectedTagId(null); }}
+          onNewSnippet={handleCreateSnippet}
+          onNewCollection={() => { setShowPalette(false); sidebarRef.current?.triggerCreateCollection(); }}
+          onClose={() => setShowPalette(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,16 +1,109 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import { initDatabase } from './db';
 import { registerIpcHandlers } from './ipc';
 
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
+let isQuitting = false;
+
+// ── Window State Persistence ──
+
+interface WindowState {
+  x?: number;
+  y?: number;
+  width: number;
+  height: number;
+  isMaximized: boolean;
+}
+
+const stateFilePath = () => path.join(app.getPath('userData'), 'window-state.json');
+
+function loadWindowState(): WindowState {
+  try {
+    const data = fs.readFileSync(stateFilePath(), 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return { width: 1200, height: 800, isMaximized: false };
+  }
+}
+
+function saveWindowState(): void {
+  if (!mainWindow) return;
+  const bounds = mainWindow.getBounds();
+  const state: WindowState = {
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+    isMaximized: mainWindow.isMaximized(),
+  };
+  try {
+    fs.writeFileSync(stateFilePath(), JSON.stringify(state));
+  } catch {
+    // Silently ignore write errors
+  }
+}
+
+// ── Tray Icon ──
+
+function createTrayIcon(): Electron.NativeImage {
+  // Create a simple "S" icon programmatically (16x16 monochrome)
+  // Using a data URL for a minimal icon
+  const size = 16;
+  const canvas = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 16 16">
+    <text x="3" y="13" font-family="sans-serif" font-size="14" font-weight="bold" fill="white">S</text>
+  </svg>`;
+  return nativeImage.createFromBuffer(
+    Buffer.from(canvas),
+    { width: size, height: size }
+  );
+}
+
+function setupTray(): void {
+  const icon = createTrayIcon();
+  tray = new Tray(icon);
+  tray.setToolTip('Snipper');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Open Snipper',
+      click: () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      },
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+  tray.on('click', () => {
+    mainWindow?.show();
+    mainWindow?.focus();
+  });
+}
+
+// ── Window Creation ──
 
 function createWindow(): void {
+  const saved = loadWindowState();
+
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 1200,
-    minHeight: 800,
+    width: saved.width,
+    height: saved.height,
+    ...(saved.x !== undefined && saved.y !== undefined ? { x: saved.x, y: saved.y } : {}),
+    minWidth: 900,
+    minHeight: 600,
     frame: false,
     backgroundColor: '#0d0d0d',
     webPreferences: {
@@ -20,21 +113,63 @@ function createWindow(): void {
     },
   });
 
+  if (saved.isMaximized) {
+    mainWindow.maximize();
+  }
+
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:5173');
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
   }
 
+  // Save state on resize/move
+  mainWindow.on('resize', saveWindowState);
+  mainWindow.on('move', saveWindowState);
+
+  // Hide to tray instead of closing
+  mainWindow.on('close', (e) => {
+    if (!isQuitting) {
+      e.preventDefault();
+      mainWindow?.hide();
+    }
+    saveWindowState();
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
+// ── Global Hotkey ──
+
+function registerGlobalHotkey(): void {
+  try {
+    const registered = globalShortcut.register('CommandOrControl+Shift+S', () => {
+      if (!mainWindow) return;
+      if (mainWindow.isVisible() && mainWindow.isFocused()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+    if (!registered) {
+      console.warn('Global shortcut Ctrl+Shift+S could not be registered — may be claimed by another app.');
+    }
+  } catch (err) {
+    console.warn('Failed to register global shortcut:', err);
+  }
+}
+
+// ── App Lifecycle ──
+
 app.whenReady().then(() => {
   initDatabase();
   registerIpcHandlers();
   createWindow();
+  setupTray();
+  registerGlobalHotkey();
 
   // Window control handlers
   ipcMain.on('window:minimize', () => mainWindow?.minimize());
@@ -48,14 +183,22 @@ app.whenReady().then(() => {
   ipcMain.on('window:close', () => mainWindow?.close());
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    } else {
       createWindow();
     }
   });
 });
 
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    isQuitting = true;
     app.quit();
   }
 });

@@ -58,22 +58,26 @@ interface EditorPaneProps {
   snippet: Snippet | null;
   editMode: 'none' | 'create' | 'edit';
   tags: Tag[];
+  totalSnippetCount: number;
   onEdit: () => void;
   onSave: (data: { title: string; content: string; language: string; tag_ids: number[] }) => void;
   onCancel: () => void;
   onDelete: (id: number) => void;
   onTagsChange: () => void;
+  onCreateSnippet: () => void;
 }
 
 export default function EditorPane({
   snippet,
   editMode,
   tags,
+  totalSnippetCount,
   onEdit,
   onSave,
   onCancel,
   onDelete,
   onTagsChange,
+  onCreateSnippet,
 }: EditorPaneProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -98,7 +102,6 @@ export default function EditorPane({
 
   const isEditing = editMode !== 'none';
 
-  // Auto-detect language (debounced)
   const detectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getEditorContent = useCallback(() => {
@@ -150,7 +153,6 @@ export default function EditorPane({
 
     const updateListener = EditorView.updateListener.of((update) => {
       if (!update.docChanged) return;
-      // Auto-detect language in create mode
       if (editMode === 'create' && !langManuallySet) {
         if (detectTimerRef.current) clearTimeout(detectTimerRef.current);
         detectTimerRef.current = setTimeout(() => {
@@ -208,6 +210,19 @@ export default function EditorPane({
     view.setState(state);
   }, [editLanguage, isEditing]);
 
+  // Ctrl/Cmd+Enter to save
+  useEffect(() => {
+    if (!isEditing) return;
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isEditing, editTitle, editLanguage, editTagIds]);
+
   const handleCopy = async () => {
     const content = snippet?.content ?? getEditorContent();
     if (!content) return;
@@ -262,7 +277,25 @@ export default function EditorPane({
     onTagsChange();
   };
 
-  // ── No snippet and not creating ──
+  // ── Welcome card (no snippets at all) ──
+  if (!snippet && editMode !== 'create' && totalSnippetCount === 0) {
+    return (
+      <main className="editor-pane">
+        <div className="editor-empty">
+          <div className="welcome-card">
+            <div className="welcome-logo">S</div>
+            <h2 className="welcome-heading">Welcome to Snipper</h2>
+            <p className="welcome-subtitle">Your code, organised beautifully.</p>
+            <button className="welcome-btn" onClick={onCreateSnippet}>
+              Create your first snippet &rarr;
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // ── No snippet selected ──
   if (!snippet && editMode !== 'create') {
     return (
       <main className="editor-pane">
@@ -291,7 +324,6 @@ export default function EditorPane({
         <div className="editor-actions">
           {isEditing ? (
             <>
-              {/* Language dropdown */}
               <div className="lang-dropdown-wrapper">
                 <button
                   className="editor-lang-badge editor-lang-btn"
